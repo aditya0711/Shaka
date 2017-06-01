@@ -1,184 +1,98 @@
-var espChat = (function() {
-  var room = null;
-  return {
-    initChat: function(uuid) {
-      console.log('initChat...');
-      const roomName = 'GENERAL';
-      //const roomName = 'general';
-      console.log('initChat - uuid=' + uuid);
+$(document).ready(() => {
 
-      const rltmConfig = {
-        service: 'socketio',
-        config: {
-          //endpoint: 'ws://localhost:3030',
-          endpoint: 'ws://sandbox-websvcs.southeastasia.cloudapp.azure.com',
-          uuid: uuid
-        }
-      };
-      const user = rltm(rltmConfig);
-      var prnConfig = document.createElement('DIV');
-      prnConfig.appendChild(document.createTextNode(JSON.stringify(rltmConfig, null, 2)));
-      $('#chatlogs').append(prnConfig);
-      $('#chatlogs').scrollTop($('#chatbox')[0].scrollHeight);
+        //const roomName = '5gdofoXCsOFopRXwDxyxopKASL7zSVpe';
+        const roomName = 'GENERAL';
 
-      room = user.join(roomName);
-      var prnJoining = document.createElement('DIV');
-      prnJoining.appendChild(document.createTextNode('Joining ' + roomName));
-      prnJoining.style.fontSize = '0.8em';
-      $('#chatlogs').append(prnJoining);
-      $('#chatlogs').scrollTop($('#chatbox')[0].scrollHeight);
+        const myUsername = 'George Clooney';
 
-      room.ready(function() {
-        var prnJoined = document.createElement('DIV');
-        prnJoined.appendChild(document.createTextNode('Joined ' + roomName));
-        prnJoined.style.fontSize = '0.8em';
-        $('#chatlogs').append(prnJoined);
-        $('#chatlogs').scrollTop($('#chatbox')[0].scrollHeight);
-      });
+        const log = (text = 'No text given', title = '', color = false) => {
 
-      /* --> Do not use for now.
-       room.here().then((users) => {
-       log(`<pre><code>${JSON.stringify(users, null, 4)}</pre></code>`, 'Here', 'info');
-       });*/
+            let html = $(`<div class="col-sm-3"><p class="text-${color}"><strong>${title}</strong></p></div><div class="col-sm-9 text-${color}">${text}</div>`);
 
-      /* --> Do not use for now.
-       room.history().then(function(history) {
-       let i = 0;
-       while(i < 5) {
-       if(history[i]) {
-       log(`<pre><code>${JSON.stringify(history[i], null, 4)}</pre></code>`, 'History', 'muted');
-       }
-       i++;
-       }
+            $('#log').append(html);
+            $('body').scrollTop(1E10);
 
-       }, function() {
-       });*/
+            html.find('pre code').each(function(i, block) {
+              hljs.highlightBlock(block);
+            });
 
-      room.socket.on('error', function(error) {
-        alert('error=' + error);
-        var prnOnError = document.createElement('DIV');
-        prnOnError.appendChild(document.createTextNode(error));
-        prnOnError.style.fontSize = '0.8em';
-        prnOnError.style.color = '#ffeeee';
-        $('#chatlogs').append(prnOnError);
-        $('#chatlogs').scrollTop($('#chatbox')[0].scrollHeight);
-      });
+        };
 
-      room.socket.on('senderr', function(error) {
-        alert('senderr=' + error);
-        var prnOnError = document.createElement('DIV');
-        prnOnError.appendChild(document.createTextNode(error));
-        prnOnError.style.fontSize = '0.8em';
-        prnOnError.style.color = '#ffeeee';
-        $('#chatlogs').append(prnOnError);
-        $('#chatlogs').scrollTop($('#chatbox')[0].scrollHeight);
-      });
+        const rltmConfig = {
+            service: 'socketio', 
+            config: {
+                endpoint: 'ws://sandbox-websvcs.southeastasia.cloudapp.azure.com',
+                uuid: '36c993db-7d2b-4551-8a06-5ab4d80ff4bf'
+            }
+        };
 
-      room.on('join', function(uuid1, state) {
-        var prnOnJoin = document.createElement('DIV');
-        prnOnJoin.appendChild(document.createTextNode('User joined ' + roomName + ' with uuid ' + uuid1));
-        prnOnJoin.style.fontSize = '0.8em';
-        $('#chatlogs').append(prnOnJoin);
-        $('#chatlogs').scrollTop($('#chatbox')[0].scrollHeight);
-        //$('#chatbox').append('User joined ' + roomName + ' with uuid ' + uuid1 + '\n\n');
-      });
+        const user = rltm(rltmConfig);
+        
+        log(`<pre><code class='json'>${JSON.stringify(rltmConfig, null, 4)}</pre></code>`, 'Configure', 'info');
+        
+        let room = user.join(roomName);
 
-      room.on('message', function(uuid1, message) {
-        // --> returns message as an object:
-        //     {data: "qwerty", user: { id: "36c993db-7d2b-4551-8a06-5ab4d80ff4bf", name: "George Clooney" }}
-        //console.dir(message);
-        var now = new Date();
-        var dateStr;
-        now.setDate(now.getDate() + 20);
-        dateStr = (now.getFullYear() + '/' + ('0' + (now.getMonth() + 1)).slice(-2) + '/' + ('0' + now.getDate()).slice(-2) + ' ' + now.getHours() + ':' + now.getMinutes() + ':' + now.getSeconds());
+        log(`<p>Joining ${roomName}...</p>`, 'Join', 'info');
 
-        var prnOnMsg = document.createElement('DIV');
-        var prnOnMsgPre = document.createElement('DIV');
-        prnOnMsgPre.appendChild(document.createTextNode(message.user.name + ' (' + dateStr + ')'));
-        prnOnMsgPre.style.marginBottom = '0px';
-        var msgBubble = document.createElement('DIV');
-        msgBubble.appendChild(document.createTextNode(message.data));
-        //console.log('uuid='+uuid+'| uuid1='+uuid1);
-        if (uuid === uuid1) {
-          prnOnMsgPre.style.float = 'right';
-          // talk-bubble tri-right round border right-top
-          msgBubble.classList.add('talk-bubble-right');
-          msgBubble.classList.add('tri-right');
-          msgBubble.classList.add('round');
-          msgBubble.classList.add('border');
-          msgBubble.classList.add('right-top');
-          msgBubble.style.clear = 'right';
-        } else {
-          // talk-bubble tri-right round border left-top
-          msgBubble.classList.add('talk-bubble');
-          msgBubble.classList.add('tri-right');
-          msgBubble.classList.add('round');
-          msgBubble.classList.add('border');
-          msgBubble.classList.add('left-top');
-          msgBubble.style.clear = 'left';
-        }
-        prnOnMsg.appendChild(prnOnMsgPre);
-        prnOnMsg.appendChild(msgBubble);
-        prnOnMsg.style.clear = 'both';
-        $('#chatbox').append(prnOnMsg);
-        //$('#chatbox').append(message.user.name + ' -> ' + message.data + '\n\n');
-        $('#chatbox').scrollTop($('#chatbox')[0].scrollHeight);
-      });
+        room.ready(() => {
+            log(`<p>Joined ${roomName}</p>`, 'Connect', 'success');
+        });
 
-      var state = {lastOnline: new Date()};
+        /* --> Do not use for now.
+        room.here().then((users) => {
+            log(`<pre><code>${JSON.stringify(users, null, 4)}</pre></code>`, 'Here', 'info');
+        });*/
 
-      // state set goes here
-      room.setState(state).then(function() {
-        var prnSetState = document.createElement('DIV');
-        prnSetState.appendChild(document.createTextNode('Setting state to ' + JSON.stringify(state, null, 2)));
-        prnSetState.style.fontSize = '0.8em';
-        $('#chatlogs').append(prnSetState);
-        $('#chatlogs').scrollTop($('#chatbox')[0].scrollHeight);
-        //$('#chatbox').append('Setting state to ' + JSON.stringify(state, null, 2) + '\n\n');
-      });
+        /* --> Do not use for now.
+        room.history().then(function(history) {
+            let i = 0;
+            while(i < 5) {
+                if(history[i]) {
+                    log(`<pre><code>${JSON.stringify(history[i], null, 4)}</pre></code>`, 'History', 'muted');
+                }
+                i++;
+            }
 
-      room.on('state', function(uuid1, state) {
-        var prnOnState = document.createElement('DIV');
-        prnOnState.appendChild(document.createTextNode('State set for ' + uuid1 + ' : ' + JSON.stringify(state, null, 2)));
-        prnOnState.style.fontSize = '0.8em';
-        $('#chatlogs').append(prnOnState);
-        $('#chatlogs').scrollTop($('#chatbox')[0].scrollHeight);
-        //$('#chatbox').append('State set for ' +uuid1 + ' : ' + JSON.stringify(state, null, 2) + '\n\n');
-      });
+        }, function() {
+        });*/
+        
 
-      room.on('leave', function(uuid1) {
-        var prnOnLeave = document.createElement('DIV');
-        prnOnLeave.appendChild(document.createTextNode(uuid1 + ' has left.'));
-        prnOnLeave.style.fontSize = '0.8em';
-        $('#chatlogs').append(prnOnLeave);
-        $('#chatlogs').scrollTop($('#chatbox')[0].scrollHeight);
-        //$('#chatbox').append(uuid1 + ' has left.\n\n');
-      });
+        room.on('join', function(uuid, state) {
+            log(`<p>User joined ${roomName} with uuid ${uuid}`, 'Join');
+        });
 
-      room.on('disconnect', function(uuid1) {
-        var prnOnDisconnect = document.createElement('DIV');
-        prnOnDisconnect.appendChild(document.createTextNode(uuid1 + ' has been disconnected.'));
-        prnOnDisconnect.style.fontSize = '0.8em';
-        $('#chatlogs').append(prnOnDisconnect);
-        $('#chatlogs').scrollTop($('#chatbox')[0].scrollHeight);
-        //$('#chatbox').append(uuid1 + ' has been disconnected.\n\n');
-      });
-    },
-    sendMessage: function() {
-      if ($('#message').val() != '') {
-        // --> { "data" = "Testing Test Test..." }
-        room.publish('{\"data\": \"' + $('#message').val() + '\"}');
+        room.on('message', function(uuid, message){
+          // --> returns message as an object:
+          //     {data: "qwerty", user: { id: "36c993db-7d2b-4551-8a06-5ab4d80ff4bf", name: "George Clooney" }}
+          //console.dir(message);
+            log(`<p>${message.data}</p>`, message.user.name);
+        });
 
-        var prnSend = document.createElement('DIV');
-        prnSend.appendChild(document.createTextNode('Sending ' + $('#message').val()));
-        $('#chatlogs').append(prnSend);
-        $('#chatlogs').scrollTop($('#chatbox')[0].scrollHeight);
-        //$('#chatbox').append('Sending ' + $('#message').val() + '\n\n');
-        $('#message').val('');
-        $('#message').focus();
-        return false;
-      }
-    }
-  }
+        let state = {lastOnline: new Date()};
 
-})(espChat || {});
+        // state set goes here
+        room.setState(state).then(function() {
+            log(`<p.Setting state as</p><pre><code>${JSON.stringify(state, null, 4)}</code></pre> `, 'Setting State...', 'info');
+        });    
+
+        room.on('state', function(uuid, state) {
+            log(`<p>State set for <strong>${uuid}</strong></p> <pre><code>${JSON.stringify(state, null, 4)}</code></pre> `, 'State', 'success');
+        });
+        
+        room.on('leave', (uuid) => {
+            log(`<p>${uuid} has left</p>`, 'Leave', 'warning');
+        });
+
+        room.on('disconnect', (uuid) => {
+            log(`<p>${uuid} has been disconnected</p>`, 'Disconnect', 'warning');
+        });
+
+        $('form').submit(() => {
+            // --> { "data" = "Testing Test Test..." }
+            room.publish('{\"data\": \"'+$('#message').val()+'\"}');
+            log(`<p>${$('#message').val()}</p>`, 'Sending...', 'info');
+            $('#message').val('');
+            return false;
+        });
+
+    });

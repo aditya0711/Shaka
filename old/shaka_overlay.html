@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>html</title>
+	<!-- Latest compiled and minified CSS -->
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+		<!-- jQuery library -->
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+		<!-- Latest compiled JavaScript -->
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+   	    <script type="text/javascript" src="https://cdn.jsdelivr.net/clappr/latest/clappr.min.js"></script>
+		<script src="shaka-player/dist/shaka-player.compiled.js"></script>
+		<script src="myapp2.js"></script>
+			<style type="text/css">
+				html,body,.container-fluid,.row,.col-sm-12,.col-sm-3
+				{
+					height: 100%;
+				}
+				.col-sm-12,#overlay,.video-small
+				{
+					position: absolute;
+				}
+				.col-sm-12
+				{
+					z-index: 50 !important;
+				}
+				.video-small
+				{
+					right: 0;
+					margin-top: 22.5px;
+					z-index: 100 !important;
+				}
+				.col-video
+				{
+					width: 100%;
+					height: 27%;
+					margin-top: 20px;
+				}
+				#overlay
+				{
+					z-index: 75;
+				}
+				#container1
+				{
+					width: 100%;
+					height: 100%
+				}
+
+			</style>
+</head>
+<body>
+
+<div class="container-fluid">
+	<div class="row">
+		<div id="container1" class="col-sm-12"><!-- <video id="video video-main" width="100%" height="900" poster="//shaka-player-demo.appspot.com/assets/poster.jpg" controls autoplay></video> --></div>
+		<div id="overlay"></div>
+			<div class="col-sm-3 video-small">
+				<div id="container2" class="col-video"><!-- <video id="video2" width="320" poster="//shaka-player-demo.appspot.com/assets/poster.jpg"  autoplay></video> --></div>
+				<div id="container3" class="col-video"><!-- <video id="video3" width="320" poster="//shaka-player-demo.appspot.com/assets/poster.jpg"  autoplay></video> --></div>
+				<div id="container4" class="col-video"><!-- <video id="video4" width="320" poster="//shaka-player-demo.appspot.com/assets/poster.jpg"  autoplay></video> --></div>
+			</div>
+			<script type="text/javascript">
+		        // Create a viewer
+		        var player1 = new Clappr.Player({source: "http://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4", parentId: "#container1", height:"100%" , width: "100%"});
+				var player2 = new Clappr.Player({source: "http://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4", parentId: "#container2", height:"100%" , width: "100%"});
+				var player3 = new Clappr.Player({source: "http://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4", parentId: "#container3", height:"100%" , width: "100%"});
+				var player4 = new Clappr.Player({source: "http://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4", parentId: "#container4", height:"100%" , width: "100%"});
+    		</script>
+	</div>
+</div>
+
+</body>
+</html>

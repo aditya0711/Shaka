@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Clappr Player 1+3R</title>
+            <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+            <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+            <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+            <script type="text/javascript" charset="utf-8" src="node_modules/clappr/dist/clappr.min.js"> </script>
+            <script type="text/javascript" charset="utf-8" src="node_modules/clappr-video360/dist/clappr-video360.min.js"> </script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/dash-shaka-playback/2.0.4/dash-shaka-playback.js"></script>
+
+            <script src="js/socket.io/socket.io.js"></script>
+            <!--<script src="clappr.js"></script>-->
+            <style type="text/css">
+                        html,body,.container-fluid,.row,.col-sm-12,.col-sm-3
+                        {
+                            height: 100%;
+                        }
+                        .col-sm-12,#overlay,.video-small
+                        {
+                            position: absolute;
+                        }
+                        .col-sm-12
+                        {
+                            z-index: 50 !important;
+                        }
+                        .video-small
+                        {
+                            right: 0;
+                            margin-top: 22.5px;
+                            z-index: 100 !important;
+                        }
+                        .col-video
+                        {
+                            width: 100%;
+                            height: 27%;
+                            margin-top: 20px;
+                        }
+                        #overlay
+                        {
+                            z-index: 75;
+                        }
+                        #container1
+                        {
+                            width: 100%;
+                            height: 100%
+                        }
+                        #websocket, .playerControls{
+                            margin: 100px;
+                            /*padding: 20px;*/
+                            align-content: center;
+                            z-index: 10000 !important;
+                            position: absolute;
+                            background-color: darkgrey;
+                        }
+                        #dialog-form{
+                            padding: 25px;
+                            margin:25px;
+                        }
+                        #player1controls{
+                            align-content: center;
+                            align-items: center;
+                            margin-left: 500px;
+                        }
+            </style>
+    </head>
+    <body>
+
+    <div class="container-fluid">
+        <div class="row">
+            <div id="container1" class="col-sm-12"><div id='websocket'/></div>
+            <div id="overlay"></div>
+                <div class="col-sm-3 video-small">
+                    <!--<div id="container2" class="col-video"></div>-->
+                    <div id="container3" class="col-video"></div>
+                    <div id="container4" class="col-video"></div>
+                </div>
+
+                <script>
+
+                    var w = window.innerWidth;
+                    var h = window.innerHeight;
+                    Clappr.Log.setLevel(0);
+
+                  var HelloWorld = Clappr.UIContainerPlugin.extend({
+                    name: 'hello_world',
+                    initialize: function() {
+                      this.render();
+                    },
+                    bindEvents: function() {
+                      this.listenTo(this.container, Clappr.Events.CONTAINER_PAUSE, this.pause);
+                      this.listenTo(this.container, Clappr.Events.CONTAINER_PLAY, this.play);
+                      this.listenTo(this.container, Clappr.Events.CONTAINER_SEEK, this.seek);
+                      this.listenTo(this.container, Clappr.Events.CONTAINER_CLICK, this.click)
+                      this.listenTo(this.container, Clappr.Events.CONTAINER_DESTROYED, this.click)
+                    },
+                    play: function() {
+                      console.log("------->Player 1 Playing");
+
+                      player2.play();
+                      player3.play();
+                      player4.play();
+                    },
+                    pause: function() {
+                      console.log("Player 1 is Paused");
+                      player2.pause();
+                      player3.pause();
+                      player4.pause();
+                    },
+                    seek: function(){
+                      console.log("Player 1 seek: current time: " + player1.getCurrentTime());
+                      var current_time = player1.getCurrentTime();
+                      player2.seek(current_time);
+                      player3.seek(current_time);
+                      player4.seek(current_time);
+                    },
+                    click: function(){
+                        console.log("Player 1 container clicked/deleted");
+                        player2.configure({
+                            //source: "http://espxlive.azureedge.net/piglet/live.m3u8",
+                            source: "http://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4",
+                            parentId: "#container2",
+                            height: 200,
+                            width: 300,
+                            chromeless: true,
+                            autoplay: false,
+                            plugins: [Clappr.HLS, WindowListener],
+                        });
+                    },
+                    render: function() {
+                        this.$el.html("<div id='player1controls'>"+
+                            "<button type='submit' class='btn btn-warning' onclick='onClick(1)'>Chat</button>   ; " +
+                            "<button type='submit' class='btn btn-danger' onclick='onClick(2)'>Dialogs</button>    ; "+
+                            "<button type='submit' class='btn btn-info' onclick='onClick(3)'>2</button> ; " +
+                            "<button type='submit' class='btn btn-info' onclick='onClick(4)'>3</button> ; " +
+                            "<button type='submit' class='btn btn-info' onclick='onClick(5)'>4</button> ; " +
+                            "<div id='container2'></div> </div> "
+                        );
+                        this.$el.css('z-index', '100000000 !important');
+                        this.$el.css('position', "absolute");
+                        //this.$el.css('position', 'relative');
+                        //this.$el.css('opacity', 0.5);
+                        this.container.$el.append(this.$el);
+
+                        return this;
+                    }
+                  });
+
+                  var WindowListener = Clappr.UIContainerPlugin.extend({
+                      name: 'window_listener',
+                      initialize: function() {
+                          this.render();
+                      },
+                      bindEvents: function() {
+                          this.listenTo(this.container, Clappr.Events.CONTAINER_CLICK, this.click);
+                          this.listenTo(this.container, Clappr.Events.CONTAINER_DESTROYED, this.recreate);
+                      },
+                      click: function(){
+                          console.log("Window Clicked" + (this.container.toString()))
+                      },
+                      render: function(){
+                          return this;
+                      }
+                  });
+
+
+                  function onClick(button_type) {
+                      if(button_type === 1) {
+                          console.log("Button Clicked---->" + "chat")
+                      }
+                      else
+                          if(button_type === 2)
+                            console.log("Button Clicked---->" + "dialog")
+
+
+                      else
+                          if(button_type === 3 || button_type ===4 || button_type ===5) {
+
+                              var seek_time = player1.getCurrentTime();
+
+                              if (button_type === 3){
+                                  console.log("switch player 1-2")
+                                  var temp_source = player2.options.source;
+                                  console.log("PLAYER 2:" + player2)
+
+                                  player2.configure({
+                                        source: player1.options.source,
+                                    })
+                                 }
+                              if(button_type === 4){
+                                  console.log("switch player 1-3")
+                                  var temp_source = player3.options.source;
+                                  player3.configure({
+                                      source: player1.options.source,
+                                  })
+                              }
+                              if(button_type === 5){
+                                  console.log("switch player 1-4")
+                                  var temp_source = player4.options.source;
+                                  player4.configure({
+                                      source: player1.options.source,
+                                  })
+                              }
+
+
+                              player1.configure({
+                                  source: temp_source, //Place the temp source here.
+                              })
+
+                              player1.seek(seek_time)
+                              player2.seek(seek_time)
+                              player3.seek(seek_time)
+                              player4.seek(seek_time)
+                              player1.play();
+                          }
+                  }
+
+                  var player1 = new Clappr.Player({
+                      //source: 'http://thiago.me/demo-360/cool.mp4',
+                      //source: "http://espxlive.azureedge.net/piglet/live.m3u8",
+                      source: "http://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4",
+                      height: '100%',
+                      width: '100%',
+                      plugins: [ HelloWorld, Clappr.HLS],
+                      parentId: '#container1',
+                      watermark: "assets/espx_logo_old.png", position: 'top-left',
+                      hideMediaControl: false
+                  });
+                  player1.getPlugin('click_to_pause').disable();
+
+
+
+                  var player2 = new Clappr.Player({
+                      //source: "http://espxlive.azureedge.net/piglet/live.m3u8",
+                      source: "http://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4",
+                      parentId: "#container2",
+                      height: 200,
+                      width: 300,
+                      chromeless: true,
+                      autoplay: false,
+                      plugins: [WindowListener],
+                  });
+
+
+                  var player3 = new Clappr.Player({
+                      source: "http://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4",
+                      parentId: "#container3",
+                      height:"100%",
+                      chromeless: true,
+                      autoplay: false,
+                      width: "100%",
+                      plugins: [Clappr.HLS, WindowListener]
+                  });
+
+
+                  var player4 = new Clappr.Player(
+                      {
+                          source: '//storage.googleapis.com/shaka-demo-assets/angel-one/dash.mpd',
+                          plugins: [DashShakaPlayback],
+                          shakaConfiguration: {
+                              preferredAudioLanguage: 'pt-BR',
+                              streaming: {
+                                  rebufferingGoal: 15
+                              }
+                          },
+                          shakaOnBeforeLoad: function(shaka_player) {
+                              // shaka_player.getNetworkingEngine().registerRequestFilter() ...
+                          },
+                          height: '100%',
+                          width: '100%',
+                          parentId: '#container4',
+                          chromeless: true
+                      });
+
+                  //Player 1 is playing by default
+                  player1.play();
+                  player1.unmute();
+
+                  //Mute the other players.
+                  player2.mute();
+                  player3.mute();
+                  player4.mute();
+
+
+
+                  $(document).ready(() => {
+                      var socket_namespace = io('ws://localhost:3030/demo');
+
+                      socket_namespace.on('message', function (result) {
+                          var div = document.getElementById('websocket');
+
+                          div.innerHTML = div.innerHTML + ' [WS Message] <p/> <p/>' + result;
+
+                          var f = document.createElement("form");
+                          f.setAttribute('method',"post");
+                          f.setAttribute('action',"submit.php");
+                          f.setAttribute('class', "dialog-form");
+
+                          var i = document.createElement("input"); //input element, text
+                          i.setAttribute('type',"text");
+                          i.setAttribute('name',"username");
+                          i.setAttribute('class', "form-control");
+
+                          var s = document.createElement("input"); //input element, Submit button
+                          s.setAttribute('type',"submit");
+                          s.setAttribute('value',"Submit");
+                          //s.setAttribute('onclick', "onClick()")
+                          s.setAttribute('class', "btn btn-info")
+
+                          f.appendChild(i);
+                          f.appendChild(s);
+
+                          div.appendChild(f);
+                          player1.pause()
+                          //alert('socket1 message - result=' + result)
+                      });
+                  })
+               </script>
+        </div>
+    </div>
+
+    </body>
+</html>
